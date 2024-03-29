@@ -5,7 +5,8 @@ import (
 	"log"
 )
 
-//type users []user
+
+
 
 func main() {
 	db, err := getDB()

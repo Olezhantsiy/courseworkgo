@@ -6,38 +6,38 @@ import (
 	"net/http"
 )
 
-func getAllClient(c *gin.Context, db *sql.DB) {
-	var clients []client
-	rows, err := db.Query("SELECT Id, FirstName,LastName, Email FROM client")
+func getAllBook(c *gin.Context, db *sql.DB) {
+	var books []book
+	rows, err := db.Query("SELECT id, Title ,Code, YearPublish, CountPage, Price, Hardcover, Abstract, Status, AuthorId, PublishId, GenreId  FROM book")
 	if err != nil {
-		c.JSON(500, gin.H{"message": "Error Get All User"})
+		c.JSON(500, gin.H{"message": "Error Get All book"})
 		return
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var u client
+		var b book
 		//TODO:повторить
-		err := rows.Scan(&u.Id, &u.FirstName, &u.LastName, &u.Email)
+		err := rows.Scan(&b.id, &b.Title, &b.Code, &b.YearPublish, &b.CountPage, &b.Price, &b.Hardcover, &b.Abstract, &b.Status, &b.AuthorId, &b.PublishId, &b.GenreId)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": "something wrong mann..."})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		clients = append(clients, u)
+		books = append(books, b)
 	}
 
-	//TODO:разобраться тут поподробней
 	if err := rows.Err(); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
-	c.JSON(http.StatusOK, clients)
+	c.JSON(http.StatusOK, books)
 }
 
-func getClient(c *gin.Context, db *sql.DB) {
-	var u client
+func getBook(c *gin.Context, db *sql.DB) {
+	var b book
 	id := c.Param("id")
 
-	err := db.QueryRow("SELECT Id, FirstName,LastName, Email FROM client WHERE Id = ?", id).Scan(&u.Id, &u.FirstName, &u.LastName, &u.Email)
+	err := db.QueryRow("SELECT id, Title ,Code, YearPublish, CountPage, Price, Hardcover, Abstract, Status, AuthorId, PublishId, GenreId FROM book WHERE Id = ?",
+		id).Scan(&b.id, &b.Title, &b.Code, &b.YearPublish, &b.CountPage, &b.Price, &b.Hardcover, &b.Abstract, &b.Status, &b.AuthorId, &b.PublishId, &b.GenreId)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			c.JSON(http.StatusNotFound, gin.H{"message": "user lost brooo"})
@@ -46,100 +46,87 @@ func getClient(c *gin.Context, db *sql.DB) {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "something wrong mann..."})
 		return
 	}
-	c.JSON(http.StatusOK, u)
+	c.JSON(http.StatusOK, b)
 }
 
-func createClient(c *gin.Context, db *sql.DB) {
+func createBook(c *gin.Context, db *sql.DB) {
 
-	var nu client //newUser
-	if err := c.ShouldBindJSON(&nu); err != nil {
+	var nb book //newUser
+	if err := c.ShouldBindJSON(&nb); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "something wrong mann..."})
 		return
 	}
 
-	_, err := db.Exec("INSERT INTO client (FirstName,LastName, Email) VALUES (? , ?, ?)", nu.FirstName, nu.LastName, nu.Email)
+	_, err := db.Exec("INSERT INTO book (Title,Code, YearPublish,CountPage, Price, Hardcover, Abstract, Status) VALUES (?,?,?,?,?,?,?,?)",
+		nb.Title, nb.Code, nb.YearPublish, nb.CountPage, nb.Price, nb.Hardcover, nb.Abstract, nb.Status)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	//c.JSON(http.StatusOK, gin.H{"massage": "it's all good man"})
-	getAllClient(c, db)
+	getAllBook(c, db)
 }
 
-func deleteClient(c *gin.Context, db *sql.DB) {
+func deleteBook(c *gin.Context, db *sql.DB) {
 	id := c.Param("id")
-	_, err := db.Exec("DELETE FROM client WHERE Id = ?", id)
+	_, err := db.Exec("DELETE FROM book WHERE id = ?", id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	getAllClient(c, db)
+	getAllBook(c, db)
 	//c.JSON(http.StatusOK, gin.H{"massage": "it's all good man"})
 }
 
-func updateClient(c *gin.Context, db *sql.DB) {
-	var nu client
+func updateBook(c *gin.Context, db *sql.DB) {
+	var nb book
 	id := c.Param("id")
-	if err := c.ShouldBindJSON(&nu); err != nil {
+	if err := c.ShouldBindJSON(&nb); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	_, err := db.Exec("UPDATE client SET FirstName = ?, LastName = ?, Email = ? WHERE Id = ?", nu.FirstName, nu.LastName, nu.Email, id)
+	_, err := db.Exec(
+		"UPDATE book SET Title = ?, Code = ?, YearPublish = ?,CountPage= ?,Price= ?, Hardcover= ?, Abstract= ?, Status = ? WHERE id = ?",
+		nb.Title, nb.Code, nb.YearPublish, nb.CountPage, nb.Price, nb.Hardcover, nb.Abstract, nb.Status, id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	getAllClient(c, db)
+	getAllBook(c, db)
 	//c.JSON(http.StatusOK, gin.H{"massage": "it's all good man"})
 }
 
 ///
 
-func getAllServices(c *gin.Context, db *sql.DB) {
-	var services []service
-	rows, err := db.Query("SELECT Id, ServiceName, Price FROM service")
+func getAllGenre(c *gin.Context, db *sql.DB) {
+	var genres []genre
+	rows, err := db.Query("SELECT Id, Name FROM genre")
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error Get All Services"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error Get All genres"})
 		return
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var s service
-		err := rows.Scan(&s.Id, &s.Name, &s.Price)
+		var g genre
+		err := rows.Scan(&g.id, &g.Name)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"message": "something wrong..."})
 			return
 		}
-		services = append(services, s)
+		genres = append(genres, g)
 	}
 
 	if err := rows.Err(); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
-	c.JSON(http.StatusOK, services)
+	c.JSON(http.StatusOK, genres)
 }
 
-func createService(c *gin.Context, db *sql.DB) {
-	var ns service
-
-	if err := c.ShouldBindJSON(&ns); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "something wrong..."})
-		return
-	}
-
-	_, err := db.Exec("INSERT INTO service (Name, Price) VALUES (?, ?)", ns.Name, ns.Price)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	getAllServices(c, db)
-}
-
-func getAllPayments(c *gin.Context, db *sql.DB) {
-	var payments []payment
-	rows, err := db.Query("SELECT Id, ClientId, ServiceId,Date, Quantity, Amount FROM payment")
+func getAllAuthor(c *gin.Context, db *sql.DB) {
+	var authors []author
+	rows, err := db.Query("SELECT id, FirstName, LastName FROM author")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error Get All Payments"})
 		return
@@ -147,46 +134,54 @@ func getAllPayments(c *gin.Context, db *sql.DB) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var p payment
-		err := rows.Scan(&p.Id, &p.ClientId, &p.ServiceId, &p.Date, &p.Quantity, &p.Amount)
+		var a author
+		err := rows.Scan(&a.id, &a.FirstName, &a.LastName)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		payments = append(payments, p)
+		authors = append(authors, a)
 	}
 
 	if err := rows.Err(); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
-	c.JSON(http.StatusOK, payments)
+	c.JSON(http.StatusOK, authors)
 }
 
-func createPayment(c *gin.Context, db *sql.DB) {
-	var np payment
-
-	if err := c.ShouldBindJSON(&np); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "something wrong..."})
-		return
-	}
-
-	_, err := db.Exec("INSERT INTO payment (ClientId, ServiceId, Date, Quantity, Amount) VALUES (?, ?, ?, ?, ?)",
-		np.ClientId, np.ServiceId, np.Quantity, np.Amount)
+func getAllPublish(c *gin.Context, db *sql.DB) {
+	var publishs []publish
+	rows, err := db.Query("SELECT id, NamePublish, Address, Site FROM publish")
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error Get All Payments"})
 		return
 	}
-	getAllPayments(c, db)
+	defer rows.Close()
+
+	for rows.Next() {
+		var p publish
+		err := rows.Scan(&p.id, &p.NamePublish, &p.Address, &p.Site)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		publishs = append(publishs, p)
+	}
+
+	if err := rows.Err(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+	c.JSON(http.StatusOK, publishs)
 }
 
 ///
 
-func StoredProcedure(c *gin.Context, db *sql.DB) {
+func InfoBook(c *gin.Context, db *sql.DB) {
 	id := c.Param("id")
 
-	var info []InfoDemo
+	var bookInfo []SP_InfoBook
 
-	rows, err := db.Query("call mydb.infoDemo(?)", id)
+	rows, err := db.Query("call bookstorage.bookInfo(?)", id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -194,12 +189,33 @@ func StoredProcedure(c *gin.Context, db *sql.DB) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var i InfoDemo
-		err := rows.Scan(&i.FirstName, &i.LastName, &i.Phone, &i.ServiceName, &i.Quantity, &i.Amount)
+		var i SP_InfoBook
+		err := rows.Scan(&i.FirstName, &i.LastName, &i.Title, &i.PublishYear, &i.Publish)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		}
-		info = append(info, i)
+		bookInfo = append(bookInfo, i)
 	}
-	c.JSON(http.StatusOK, info)
+	c.JSON(http.StatusOK, bookInfo)
+}
+
+func FindBook(c *gin.Context, db *sql.DB) {
+	var books []book
+	search := c.Query("search")
+	rows, err := db.Query("SELECT id, Title, Code, YearPublish, CountPage, Price, Hardcover, Abstract, Status, AuthorId, PublishId, GenreId FROM book WHERE Title LIKE ?",
+		"%"+search+"%")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var b book
+		err := rows.Scan(&b.id, &b.Title, &b.Code, &b.YearPublish, &b.CountPage, &b.Price, &b.Hardcover, &b.Abstract, &b.Status, &b.AuthorId, &b.PublishId, &b.GenreId)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		books = append(books, b)
+	}
+	c.JSON(http.StatusOK, books)
 }

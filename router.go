@@ -8,31 +8,38 @@ import (
 func getRouter(db *sql.DB) *gin.Engine {
 	router := gin.Default()
 
-	///
+	///books
 
-	router.GET("/clients", func(c *gin.Context) { getAllClient(c, db) })
+	router.GET("/books", func(c *gin.Context) { getAllBook(c, db) })
 
-	router.GET("/clients/:id", func(c *gin.Context) { getClient(c, db) })
+	router.GET("/books/:id", func(c *gin.Context) { getBook(c, db) })
 
-	router.POST("/clients", func(c *gin.Context) { createClient(c, db) })
+	router.POST("/books", func(c *gin.Context) { createBook(c, db) })
 
-	router.DELETE("/clients/:id", func(c *gin.Context) { deleteClient(c, db) })
+	router.DELETE("/books/:id", func(c *gin.Context) { deleteBook(c, db) })
 
-	router.PUT("/clients/:id", func(c *gin.Context) { updateClient(c, db) })
+	router.PUT("/books/:id", func(c *gin.Context) { updateBook(c, db) })
 
-	///
+	///authors
 
-	router.GET("/services", func(c *gin.Context) { getAllServices(c, db) })
+	router.GET("/authors", func(c *gin.Context) { getAllAuthor(c, db) })
 
-	router.POST("/services", func(c *gin.Context) { createService(c, db) })
+	//router.POST("/authors", func(c *gin.Context) { createService(c, db) })
 
-	router.GET("/payments", func(c *gin.Context) { getAllPayments(c, db) })
+	///Publishers
 
-	router.POST("/payments", func(c *gin.Context) { createPayment(c, db) })
+	router.GET("/publishers", func(c *gin.Context) { getAllPublish(c, db) })
 
-	///
+	//router.POST("/payments", func(c *gin.Context) { createPayment(c, db) })
 
-	router.GET("clients/orders/:id", func(c *gin.Context) { StoredProcedure(c, db) })
+	///Genre
+
+	router.GET("/genres", func(c *gin.Context) { getAllGenre(c, db) })
+
+	///Хранимые процедуры и доп запросики
+	//TODO: Добваить другие запросики
+	router.GET("books/info/:id", func(c *gin.Context) { InfoBook(c, db) })
+	router.GET("/books/find", func(c *gin.Context) { FindBook(c, db) })
 
 	return router
 }
