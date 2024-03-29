@@ -39,7 +39,9 @@ func getRouter(db *sql.DB) *gin.Engine {
 	///Хранимые процедуры и доп запросики
 	//TODO: Добваить другие запросики
 	router.GET("books/info/:id", func(c *gin.Context) { InfoBook(c, db) })
-	router.GET("/books/find", func(c *gin.Context) { FindBook(c, db) })
+
+	router.GET("/books/search", func(c *gin.Context) { FindBook(c, db) }) //old search
+	router.GET("/books/searchh", func(c *gin.Context) { SearchBook(c, db) })
 
 	return router
 }

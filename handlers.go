@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -218,4 +219,66 @@ func FindBook(c *gin.Context, db *sql.DB) {
 		books = append(books, b)
 	}
 	c.JSON(http.StatusOK, books)
+}
+
+func SearchBook(c *gin.Context, db *sql.DB) {
+	var books []book
+	var args []interface{}
+	//var quaryStr string
+
+	title := c.Query("title")
+	author := c.Query("author")
+	genre := c.Query("genre")
+	publish := c.Query("publish")
+
+	quaryStr := "SELECT id, Title, Code, YearPublish, CountPage, Price, Hardcover, Abstract, Status, AuthorId, PublishId, GenreId FROM book WHERE 1=1"
+
+	if title != "" {
+		quaryStr += " AND Title Like ?"
+		args = append(args, "%"+title+"%")
+		fmt.Println(title)
+		fmt.Println(args)
+	}
+
+	if author != "" {
+		quaryStr += " AND AuthorId Like ?"
+		args = append(args, "%"+author+"%")
+		fmt.Println(author)
+		fmt.Println(args)
+	}
+
+	if genre != "" {
+		quaryStr += " AND GenreId Like ?"
+		args = append(args, "%"+genre+"%")
+		fmt.Println(genre)
+		fmt.Println(args)
+	}
+
+	if publish != "" {
+		quaryStr += " AND PublishId Like ?"
+		args = append(args, "%"+publish+"%")
+		fmt.Println(publish)
+		fmt.Println(args)
+	}
+
+	quaryStr += ""
+
+	rows, err := db.Query(quaryStr, args...)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var b book
+		err := rows.Scan(&b.id, &b.Title, &b.Code, &b.YearPublish, &b.CountPage, &b.Price, &b.Hardcover, &b.Abstract, &b.Status, &b.AuthorId, &b.PublishId, &b.GenreId)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		books = append(books, b)
+	}
+	c.JSON(http.StatusOK, books)
+
 }

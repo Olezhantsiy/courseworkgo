@@ -5,9 +5,6 @@ import (
 	"log"
 )
 
-
-
-
 func main() {
 	db, err := getDB()
 	if err != nil {
